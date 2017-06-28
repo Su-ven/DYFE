@@ -53,9 +53,81 @@
     		console.log(this);
     	}
 
-    	setTimeout(function(){
-    		console.log(this);
-    	},100);
+        var SetA = {};
+        SetA.a = 'Aa';
+        SetA.b = 'Ab';
+
+        var SetB = SetA;
+        SetB.b = 'Bb';
+        SetB.c = 'Bc';
+        console.log(SetB);
+        console.log(SetA);
+
+        var SetC = {}
+        for (var i in SetA) {
+            SetC[i] = i;
+        }
+        SetC.d = 'Cd';
+
+        console.log(SetC);
+
+        var gold = {a:1};
+        var blue ={};
+
+        var carlike = function(obj, loc) {
+            obj.loc = loc;
+            obj.move = function() {
+            this.loc++;
+        };;
+            return obj;
+        };
+
+        var move = function() {
+            this.loc++;
+        };
+
+        var amy = carlike({}, 1);
+        amy.move();
+        var ben = carlike({}, 9);
+        ben.move();
+
+        var setA = function(){ return function(){} };
+
+        var obj1 = setA();
+        var obj2 = setA();
+        console.log(obj1 === obj2);
+        console.log(obj1 === setA);
+
+        var a = {}
+        a.b = 'ab';
+        a.c = 'ac';
+        a.Fn = function(){ return function(){} }
+
+        var b = {};
+        b.bFn = a.Fn();
+        b.b = 'bb';
+        var c = {};
+        c.cFn = a.Fn();
+        c.c = 'cc';
+        console.log(b);
+        console.log(c);
+        console.log(a);
+        console.log(b === a);
+        console.log(c === a);
+        console.log(c === b);
+
+
+        var Car = function(){this.a = 'a'}
+        Car.prototype.move = function(){ console.log('move') }
+
+        var car = new Car();
+        car.move();
+        var Car2 = function(){};
+        Car2.prototype = Car.prototype;
+        var car2 = new Car2();
+        car2.move();
+        console.log(car.a);
+        console.log(car.constructor);
     </script>
 </body>
 </html>
