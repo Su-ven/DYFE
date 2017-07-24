@@ -64,3 +64,41 @@ this是一个标识符，它需要和值进行绑定，跟变量差不多。 但
 	4. 使用案例
 	5. 可预见bug	
 	6. 版本证书声明
+
+# 优化
+* 关键呈现路径  
+	关键呈现路径是指浏览器所经历的一系列步骤，从而将html, css, js转换为在屏幕上呈现的像素内容  
+
+
+* 越具体的css树需要花费的时间越长
+	div h1{} > h1{}
+
+* 在外链的tag上添加属于async, 这样浏览器会忽略脚本的请求继续解析dom
+  获取JS的三种方式：
+  	* 阻塞(<script type="text/javascript" src="***.jx"></script>)
+  		* 按顺便渲染dom,请求js及css并解析渲染直到渲染完成再执行下一个
+  	* 内联(<script> document.write('now') </script>);
+  		* 不需要进行外链请求
+  	* 异步(<script type="text/javascript" src="***.js" async></script>)
+  		* 按顺序渲染dom并请求js,但是并不解析,不阻止css的解析,dom及css渲染完成之后再进行js的解析
+
+* 浏览器能够同时下载外链文件，最低关键路径来回次数
+* 管道
+	* 通过css 或 js 做出了改动，浏览器会重新计算受到影响的元素的样式，经历 js->style->layout->paint->composite几个步骤
+	* 如果仅更改了绘制属性(背景图片,文本颜色,阴影), 经历js->style->paint->composite几个步骤
+	* 如涉及的更改不需要布局, 则经历js->style->composite几个步骤
+* 网络应用的生命周期四大领取为LIAR(load, idle, animations, response /加载, 闲置, 动画, 响应)
+* 任何涉及动作或屏幕手指操作的互动都需要达到60fps
+* 对于任务属性，浏览器都必须运行布局，所以任何涉及位置的更改都有可能会导致强制同步布局
+* 在动画的过程中，尽量避免布局和绘制流程
+* 新版的chrome中rendering在console面板左边的三个点中, timeline被集成在Performance中
+* 使用will-Change: transform/top/left/width/heigh
+
+* bug
+	* .htaccess  添加 Vary: Accept-Encoding 标头后项目报500错误
+		<IfModule mod_headers.c>
+		  <FilesMatch ".(js|css|xml|gz|html)$">
+		    Header append Vary: Accept-Encoding
+		  </FilesMatch>
+		</IfModule>
+	* 图片需要指定宽高吗

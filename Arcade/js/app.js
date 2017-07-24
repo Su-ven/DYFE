@@ -8,9 +8,9 @@ var Enemy = function(x,y) {
     // 敌人的图片或者雪碧图，用一个我们提供的工具函数来轻松的加载文件
     this.x = x;
     this.y = y;
-    this.sprite = 'images/enemy-bug.png';
+    this.sprite = gameConfig.enemyImg;
 
-    this.speed = randomNumBoth(localStorage.level*20, localStorage.level*20+150)*1;
+    this.speed = getRandomNum(localStorage.level*20, localStorage.level*20+150)*1;
 };
 
 
@@ -22,8 +22,6 @@ Enemy.prototype.update = function(dt) {
     if (this.x > cw) {
         this.x = 0;
     }
-    // console.log((Math.random(localStorage.level*1)+10));
-    // var levelSpeed = randomNumBoth(localStorage.level*1, localStorage.level*1+10)*1;
     this.x += this.speed*dt;
     this.handle();
 };
@@ -85,10 +83,8 @@ Player.prototype = {
                 this.y = 400;
                 localStorage.level = localStorage.level*1+1;
                 for (var i = 0; i < allEnemies.length; i++) {
-                    allEnemies[i]['speed'] = randomNumBoth(localStorage.level*20, localStorage.level*20+150)*1;
+                    allEnemies[i]['speed'] = getRandomNum(localStorage.level*20, localStorage.level*20+150)*1;
                 }
-                console.log(localStorage.level);
-                console.log(enemy.speed);
             }
             break;
             case 'down':
@@ -107,11 +103,11 @@ Player.prototype = {
 // 现在实例化你的所有对象
 // 把所有敌人的对象都放进一个叫 allEnemies 的数组里面
 // 把玩家对象放进一个叫 player 的变量里面 
-var player = new Player(205, 400);
-var enemy = new Enemy(0,60);
-var enemy2 = new Enemy(0,145);
-var enemy3 = new Enemy(0,230);
-var allEnemies = [enemy, enemy2, enemy3];
+var player = new Player(gameConfig.player.x, gameConfig.player.y);
+var allEnemies = [];
+for (var i = 0; i < gameConfig.enemy.length; i++) {
+    allEnemies.push(new Enemy(gameConfig.enemy[i].x,gameConfig.enemy[i].y))
+}
 
 // 这段代码监听游戏玩家的键盘点击事件并且代表将按键的关键数字送到 Play.handleInput()
 // 方法里面。你不需要再更改这段代码了。
@@ -127,9 +123,6 @@ document.addEventListener('keyup', function(e) {
 });
 
 // 这里为范围随机数
-function randomNumBoth(Min,Max){
-      var Range = Max - Min;
-      var Rand = Math.random();
-      var num = Min + Math.round(Rand * Range); //四舍五入
-      return num;
+function getRandomNum(a,b){
+      return b + Math.round(Math.random() * (a - b));
 }

@@ -11,19 +11,20 @@
  */
 
 var saveImgData = [];
+/* 状态有三种，unstarted为未开始状态，这个状态下可以进行角色选择，并会初始化level为0 
+  * success为正常开始以及成功通过一关，level+1并存入localStorage
+  * failed为与虫子碰撞，失败并显示失败图像，1s后页面刷新，level不变
+*/
 var status = 'unstarted';
 if (localStorage.status && localStorage.status == 'start') {
     status = 'success';
 }
-var userImgList = ['images/char-boy.png', 'images/char-cat-girl.png', 'images/char-horn-girl.png', 'images/char-pink-girl.png', 'images/char-princess-girl.png'];
 ~(function initData(){
     // 这个方法用于初始化并判断localstrage中有没有level和userImg以确定用户游戏等级以及曾选头像
     // 把等级初始为0，并存在localStorage中
-    // localStorage.level = 0;
     if (!localStorage.level){
         localStorage.level = 0;
     }
-    console.log(localStorage.level);
 })(window);
 
 var Engine = (function(global) {
@@ -66,8 +67,8 @@ var Engine = (function(global) {
          if (status == 'failed') {
             var timer = setTimeout(function(){
                 clearTimeout(timer);
-                alert('BOOM!!!!');
-                window.location.reload();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                failedAnimate(canvas, ctx);
             },100);
             return false;
          }
@@ -88,7 +89,6 @@ var Engine = (function(global) {
          */
 
          // 当状态非成功状态时，结束动画
-            console.log(status);
          if (status == 'unstarted') {
             selectUser();
          }
@@ -188,8 +188,8 @@ var Engine = (function(global) {
         oMask.style.push(maskStyles);
         var mask = doc.body.appendChild(oMask);
         var getUserImgList = '';
-        for (var i = 0; i < userImgList.length; i++) {
-            getUserImgList = getUserImgList + '<li><img src="'+userImgList[i]+'" /></li>';
+        for (var i = 0; i < gameConfig.playerImgs.length; i++) {
+            getUserImgList = getUserImgList + '<li><img src="'+gameConfig.playerImgs[i]+'" /></li>';
         }
         var createNode = '<ul id="user-msg">'+getUserImgList+'</ul><button id="submit-btn">确认</button>';
         mask.innerHTML = createNode;
@@ -228,7 +228,6 @@ var Engine = (function(global) {
                 getLi[i].style.opacity = .5;
                 getLi[i].isSelected = false;
             }
-            // createCanvasImg(getLi[i],i);
             getLi[i].addEventListener('mouseover', function(){
                 for (var j = 0; j < getLi.length; j++) {
                     getLi[j].style.opacity = .5;
@@ -244,32 +243,20 @@ var Engine = (function(global) {
         submitBtn.addEventListener('click', function(){
             for (var i = 0; i < getLi.length; i++) {
                 if (getLi[i].isSelected) {
-                    // var selected2D = (document.getElementById('liCanvas'+i).getContext('2d'));
-                    // saveImgData = selected2D.getImageData(0,0,101,171);
                     document.getElementById('mask').remove();
 
                     // 这里还需要进行一个动作，把当前选择的图片存为localStorage.userImg中，以游戏中调用
-                    console.log(userImgList[i]);
-                    localStorage.userImg = userImgList[i];
-                    player.sprite = userImgList[i];
+                    localStorage.userImg = gameConfig.playerImgs[i];
+                    player.sprite = gameConfig.playerImgs[i];
+                    // 选择角色之后，修改localStorage的状态和初始化等级
                     localStorage.status = 'start';
+                    localStorage.level = 0;
                     renderEntities();
                     main();
                 }
             }
         });
 
-    }
-
-    // canvas绘图流产。。改使用img形式
-    function createCanvasImg(target,index){
-        target.innerHTML = '<canvas id="liCanvas'+index+'" width="101" height="171"></canvas>';
-        var liCtx = document.getElementById('liCanvas'+index).getContext('2d');
-        var userImg = new Image();
-        userImg.src = userImgList[index];
-        userImg.onload = function(){
-            liCtx.drawImage(userImg, 0, 0);
-        }
     }
 
     /* 紧接着我们来加载我们知道的需要来绘制我们游戏关卡的图片。然后把 init 方法设置为回调函数。
@@ -299,4 +286,30 @@ Object.prototype.push = function(obj){
     for(var i in obj){
         this[i] = obj[i];
     }
+}
+
+function failedAnimate(canvas, ctx){
+    var boomImg = new Image();
+    boomImg.src = 'images/boom.png';
+    ctx.fillStyle="black";
+    ctx.fillRect(0,0,505,606);
+    boomImg.onload = function(){
+        ctx.drawImage(boomImg, 0, 0, canvas.width, canvas.height);
+        var gradient=ctx.createLinearGradient(0,0,canvas.width,0);
+        gradient.addColorStop("0","magenta");
+        gradient.addColorStop("0.5","blue");
+        gradient.addColorStop("1.0","red");
+        ctx.lineWidth = 1;
+        ctx.fillStyle = gradient;
+        ctx.font = "28px Georgia";
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = '#fff';
+        ctx.strokeText('你失败了， 请重新来过...', canvas.width/2, canvas.height-30);
+        ctx.fillText('你失败了， 请重新来过...', canvas.width/2, canvas.height-30);
+
+        setTimeout(function(){
+            window.location.reload();
+        },1500)
+    }
+
 }
